@@ -1,0 +1,149 @@
+\documentclass[a4paper]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage[pdftex]{hyperref}
+\usepackage{graphicx}
+\usepackage{listings}
+
+\begin{document}
+    \title{\textbf{Proyecto \#1 DAA:} El viaje}
+    \author{L\'azaro Daniel Gonz\'alez Mart\'inez y Alejandra Monz\'on Pe\~na}
+    \date{}
+    \maketitle
+
+    \section*{Descripci\'on del problema}
+    Sea $G$ un grafo no dirigido y ponderado de $n$ vértices con $m$ aristas, y $L$ una lista de $q$ triplas de la forma $(u,v,l)$, donde $u,v\in V(G)$, y $l \ge 0$. Se dice que $e \in E(G)$ es una ``arista útil'' de $G$ en $L$ ($G_L$), si $e$ está en algún camino de $u$ a $v$ con costo menor o igual que $l$, para todo $(u,v,l)\in L$.
+    
+    Hallar la cantidad de aristas útiles de $G_L$.\\
+    
+    Denotando por comodidad:
+    \begin{itemize}
+    	\item $u \rightarrow v$, ó $<u,v>$, como arista de $u$ a $v$
+    	\item $u \rightsquigarrow v$ $<<u, v>>$, como camino de $u$ a $v$
+    	\item $c(<u,v>)$, como costo de la arista de $u$ a $v$
+    	\item $c(u \rightsquigarrow v) = \sum_{e\in u \rightsquigarrow v}^{}c(e)$, como el costo del camino de $u$ a $v$, que no es más que la suma de los costos de cada arista en el camino de $u$ a $v$.
+    	\item $d(u,v)$ es el costo de algún camino de costo mínimo de $u$ a $v$.
+    \end{itemize}
+	
+	Dicho esto, una arista $e$ se dice útil en $G_L$ si para algún $(u,v,l) \in L$, $\exists (u\rightsquigarrow v)^*$ tal que $e \in (u\rightsquigarrow v)^*$ y $c((u\rightsquigarrow v)^*) \le l$.
+    
+    
+    \section*{Algoritmo eficiente}
+    
+    La propuesta de algoritmo es:
+    
+    \begin{lstlisting}[language=Python]
+def ElViaje(n, m, edges, graph, roads):
+
+    # Primera Parte (calculando 2q Dijkstras)
+    dist = [None] * n
+    for u,v,l in roads:
+        if dist[u] is None:
+            dist[u] = dijkstra(graph, u, n, m)
+        if dist[v] is None:
+            dist[v] = dijkstra(graph, v, n, m)
+    
+    # Segunda Parte (comprobando aristas utiles)
+    usefull_edge_count = 0     
+    for x,y,w in edges:
+        for u,v,l in roads:
+            if  dist[u][x] + dist[v][y] + w <=l or \
+                dist[u][y] + dist[v][x] + w <=l:
+                usefull_edge_count += 1
+                break
+    return usefull_edge_count
+    \end{lstlisting}
+    
+
+    \section*{Correctitud}
+    
+    Demostremos que, $e = <x,y>$ es una arista útil en $G_L$ si y solo si, $\exists (u,v,l) \in L$ tal que $d(u,x) + c(<x,y>) + d(y,v) \le l$ o $d(u,y) + c(<y,x>) + d(x,v) \le l$.\\
+    
+    \subsection*{Dem/($\Leftarrow$)}
+    
+    Si $\exists (u,v,l) \in L$ tal que $$d(u,x) + c(<x,y>) + d(y,v) \le l$$ ó $$d(u,x) + c(<y,x>) + d(y,v) \le l$$ (sin pérdida de generalidad asumiendo lo primero), entonces $\exists <<u,x>>^\prime, <<y,v>>^\prime$, y por lo tanto
+    $$<<u,x>>^\prime \cup <x,y> \cup <<y,v>>^\prime = u \rightsquigarrow v$$
+    donde $c(u \rightsquigarrow v) \le l$. Luego $<x,y>$ es una arista útil.\\
+    
+    \subsection*{Dem/($\Rightarrow$)}
+    
+    Sea $e=<x,y>$ una arista útil en $G_L$. Entonces por definición $\exists (u,v,l) \in L$ tal que $\exists <<u,v>>^*$ tal que $e = <x,y> \in <<u,v>>^*$ (o $<y,x>$) y $c(<<u,v>>^*) \le l$. Sin pérdida de generalidad asumamos lo primero. Luego $\exists <<u,x>>^*, <<y,v>>^*$ tal que,
+    $$ <<u,x>>^* \cup <x,y> \cup <<y,v>>^* = <<u,v>>^*$$
+    y a su vez se cumple que:
+    $$ c(<<u,x>>^*) + c(<x,y>) + c(<<y,v>>^*) \le l $$       
+    
+    Luego como existen $<<u,x>>^*, <<y,v>>^*$, entonces existirán $<<u,x>>^\prime, <<y,v>>^\prime$, caminos de costo mínimo, es decir:
+    $$ d(u,x) = c(<<u,x>>^\prime) \le c(<<u,x>>^*) $$
+    $$ d(y,v) = c(<<y,v>>^\prime) \le c(<<y,v>>^*) $$
+    Y por lo tanto
+    $$ c(<<u,x>>^\prime) + c(x,y) + c(<<y,v>>^\prime) \le c(<<u,x>>^*) + c(<x,y>) + c(<<y,v>>^*) \le l $$
+	$$d(u,x) + c(<x,y>) + d(y,v) \le l$$
+	
+	\subsection*{Fin Dem/$\Leftrightarrow$}
+	Luego queda demostrado que, $e = <x,y>$ es una arista útil en $G_L$ $\Leftrightarrow$ \\
+	$\exists (u,v,l) \in L$ tal que
+	$$d(u,x) + c(<x,y>) + d(y,v) \le l$$ ó $$d(u,y) + c(<y,x>) + d(x,v) \le l$$
+	
+	
+	Ahora bien como $G$ es no dirigido entonces $d(u,v) = d(v,u) ~ \forall u,v\in V(G)$.\\
+	
+	Luego el algoritmo para hallar la cantidad de aristas útiles, se puede reducir a por cada arista $<x,y>$ en el grafo, verificar si para alguna tripla $(u,v,l)$, se cumple que alguna de estas 2 condiciones:	
+	\begin{itemize}
+		\item $d(u,x) + c(<x,y>) + d(v, y)$
+		\item $d(u,y) + c(<y,x>) + d(v, x)$
+	\end{itemize}
+
+	Y recordando los contenidos de \textbf{EDA}, como $c(e) \ge 0 ~ \forall e \in E(G)$, entonces con el algoritmo de \textbf{Dijkstra} podemos calcular para dado un $u\in V(G)$, $d(u,v) ~ \forall v \in V(G)$.\\
+   
+	
+	En la primera parte del algoritmo al finalizar el primer \texttt{for} que itera por \texttt{roads}, ya se han calculado todos los $d(u, w)$ y $d(v, w) ~ \forall u,v$ de $(u,v,l) \in L$, y $\forall w \in V(G)$. Aquí asumiremos la correctitud del algoritmo de \textbf{Dijkstra}, y lo único que haremos señalaremos es que se utilizaron sus 2 versiones: utilizando cola de prioridad, y arreglos. Más adelante en el análisis de la complejidad temporal se explica esto.
+	
+	En la segunda parte del algoritmo se recorre cada arista en el \texttt{for} que itera por \texttt{edges}, y luego se itera por cada una de las triplas $(u,v,l)$ de $L$ en el \texttt{for} que itera por \texttt{roads}, comprobando alguna de las 2 condiciones dichas anteriormente. Cuando cumple alguna de estas, se incrementa el contador de aristas útiles, y se ejecuta un \texttt{break} para dejar de seguir comprobando en las siguientes triplas. Note que si no se hace esto, el contador podría incrementar nuevamente, y obtendríamos un valor errado.
+	
+	Una vez finalizado el \texttt{for} externo, ya se tendrá la cuenta de las aristas útiles de $G_L$.
+	
+
+	\section*{Complejidad Temporal}
+	
+	En la primera parte se calculan el arreglo de costos mínimos de cada uno de los vértices en $L$, hacia el resto de los vértices. Esto es con \textbf{Dijkstra}, el cual tiene 2 versiones:
+	\begin{itemize}
+		\item Cola de prioridad: En este caso la complejidad es $O(|E|log|V|)$
+		\item Arreglos: En este caso la complejidad es $O(|V|^2)$
+	\end{itemize}
+	Al ejecutar el algoritmo genérico, evaluamos:
+	$$ m\log n < n^2$$
+	y si esto se cumple ejecutamos la versión con cola de prioridad, y en caso contrario la versión con arreglos. Sabemos que para que esto sea mucho más preciso necesitaríamos considerar las constantes de cada operación que se realiza, pero ya esto es una buena poda.
+	
+	En el peor caso se calculan por los $2q$ vértices, que siempre serían menor o igual que $n$ vértices, un algoritmo $Dijkstra$ con complejidad $O(\min(|E|\log|V|, |V|^2))$. Por lo tanto esa primera parte tendría complejidad:
+	$$ O(q \cdot \min(|E|\log|V|, |V|^2)) = O(q\cdot \min(m\log n, n^2)) $$
+	
+	Luego en la segunda parte por cada arista del grafo (en total $|E|$), se verifica si para cada tripla (en total $|L| = q$) esta cumple la condición de arista útil. Cuando se hace esta verificación, en el peor caso se analizan todas las triplas. Por lo tanto el costo temporal sería:
+	
+	$$ O(q \cdot |E|) = O(qm) $$
+	
+	Luego:
+	
+	\begin{align*}
+		T(n,m,q) & = O(q\cdot \min(m\log n, n^2)) + O(qm)\\
+		& O(q \min(m\log n, n^2)) + qm) \\
+		& O(q (\min(m\log n, n^2) + m))
+	\end{align*}
+
+	Cuando el grafo es denso entonces $m \approx n^2$ y $\min(m\log n, n^2) = n^2$, y $O(m + n^2) = O(n^2)$. Cuando el grafo no es denso entonces $\min(m\log n, n^2) = m\log n$, y $O(m + m\log n) = O(m\log n)$. Por lo tanto:
+	$$ O(\min(m\log n, n^2) + m) = O(\min(m\log n, n^2)) $$
+	
+	Finalmente $T(n,m,q) = O(q\min(m\log n, n^2))$
+			
+    \section*{Generador y Probador de casos}
+    
+    Para generar casos, construimos grafos de forma aleatoria siguiendo algunos convenios. A la hora de generar un grafo de $n$ vértices siempre garantizamos que haya un camino de $n-1$ vértices que sea una permutación de este. Luego vamos agregando de forma aleatoria sin repetición, aristas al grafo, y dándole pesos. Para darle valor a las aristas usamos la discretización de una distribución normal con media $4$ y desviación $2$. Luego para generar los caminos útiles se generan aleatoriamente uniforme los vértices de las triplas, sin importar repeticiones, y el coste $l$ se define con la discretización de una función normal de media $3$ y desviación $1$. En los casos donde se usan las distribuciones normales, se toma el máximo del valor generado y $1$, para aquellos casos donde el valor generado es negativo.
+    
+    Una vez generado estos casos se corren par obtener sus valores.
+    
+    
+\end{document}

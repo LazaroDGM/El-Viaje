@@ -11,22 +11,22 @@
 \usepackage{listings}
 
 \begin{document}
-    \title{\textbf{Proyecto \#1 DAA:} El viaje}
+    \title{\textbf{Proyecto \#2 DAA:} El viaje}
     \author{L\'azaro Daniel Gonz\'alez Mart\'inez y Alejandra Monz\'on Pe\~na}
     \date{}
     \maketitle
 
     \section*{Descripci\'on del problema}
-    Sea $G$ un grafo no dirigido y ponderado de $n$ vértices con $m$ aristas, y $L$ una lista de $q$ triplas de la forma $(u,v,l)$, donde $u,v\in V(G)$, y $l \ge 0$. Se dice que $e \in E(G)$ es una ``arista útil'' de $G$ en $L$ ($G_L$), si $e$ está en algún camino de $u$ a $v$ con costo menor o igual que $l$, para todo $(u,v,l)\in L$.
+    Sea $G$ un grafo no dirigido y ponderado de $n$ vértices con $m$ aristas, y $L$ una lista de $q$ triplas de la forma $(u,v,l)$, donde $u,v\in V(G)$, y $l \ge 0$. Se dice que $e \in E(G)$ es una ``arista útil'' de $G$ en $L$ ($G_L$), si $e$ está en algún camino de $u$ a $v$ con costo menor o igual que $l$, para algún $(u,v,l)\in L$.
     
     Hallar la cantidad de aristas útiles de $G_L$.\\
     
     Denotando por comodidad:
     \begin{itemize}
-    	\item $u \rightarrow v$, ó $<u,v>$, como arista de $u$ a $v$
+    	\item $u \rightarrow v$, ó $<u,v>$, como arista que conecta a $u$ y $v$
     	\item $u \rightsquigarrow v$ $<<u, v>>$, como camino de $u$ a $v$
-    	\item $c(<u,v>)$, como costo de la arista de $u$ a $v$
-    	\item $c(u \rightsquigarrow v) = \sum_{e\in u \rightsquigarrow v}^{}c(e)$, como el costo del camino de $u$ a $v$, que no es más que la suma de los costos de cada arista en el camino de $u$ a $v$.
+    	\item $c(<u,v>)$, como costo de la arista de $<u,v>$
+    	\item $c(u \rightsquigarrow v) = \sum_{e\in u \rightsquigarrow v}^{}c(e)$, como el costo del camino $<<u,v>>$, que no es más que la suma de los costos de cada arista en el camino de $u$ a $v$.
     	\item $d(u,v)$ es el costo de algún camino de costo mínimo de $u$ a $v$.
     \end{itemize}
 	
@@ -101,7 +101,7 @@ def ElViaje(n, m, edges, graph, roads):
 	Y recordando los contenidos de \textbf{EDA}, como $c(e) \ge 0 ~ \forall e \in E(G)$, entonces con el algoritmo de \textbf{Dijkstra} podemos calcular para dado un $u\in V(G)$, $d(u,v) ~ \forall v \in V(G)$.\\
    
 	
-	En la primera parte del algoritmo al finalizar el primer \texttt{for} que itera por \texttt{roads}, ya se han calculado todos los $d(u, w)$ y $d(v, w) ~ \forall u,v$ de $(u,v,l) \in L$, y $\forall w \in V(G)$. Aquí asumiremos la correctitud del algoritmo de \textbf{Dijkstra}, y lo único que haremos señalaremos es que se utilizaron sus 2 versiones: utilizando cola de prioridad, y arreglos. Más adelante en el análisis de la complejidad temporal se explica esto.
+	En la primera parte del algoritmo al finalizar el primer \texttt{for} que itera por \texttt{roads}, ya se han calculado todos los $d(u, w)$ y $d(v, w) ~ \forall u,v$ de $(u,v,l) \in L$, y $\forall w \in V(G)$. Aquí asumiremos la correctitud del algoritmo de \textbf{Dijkstra}, y lo único que señalaremos es que se usan sus 2 versiones: utilizando cola de prioridad, y arreglos. Más adelante en el análisis de la complejidad temporal se explica esto.
 	
 	En la segunda parte del algoritmo se recorre cada arista en el \texttt{for} que itera por \texttt{edges}, y luego se itera por cada una de las triplas $(u,v,l)$ de $L$ en el \texttt{for} que itera por \texttt{roads}, comprobando alguna de las 2 condiciones dichas anteriormente. Cuando cumple alguna de estas, se incrementa el contador de aristas útiles, y se ejecuta un \texttt{break} para dejar de seguir comprobando en las siguientes triplas. Note que si no se hace esto, el contador podría incrementar nuevamente, y obtendríamos un valor errado.
 	
@@ -139,11 +139,11 @@ def ElViaje(n, m, edges, graph, roads):
 	
 	Finalmente $T(n,m,q) = O(q\min(m\log n, n^2))$
 			
-    \section*{Generador y Probador de casos}
+    \section*{Generador de casos}
     
     Para generar casos, construimos grafos de forma aleatoria siguiendo algunos convenios. A la hora de generar un grafo de $n$ vértices siempre garantizamos que haya un camino de $n-1$ vértices que sea una permutación de este. Luego vamos agregando de forma aleatoria sin repetición, aristas al grafo, y dándole pesos. Para darle valor a las aristas usamos la discretización de una distribución normal con media $4$ y desviación $2$. Luego para generar los caminos útiles se generan aleatoriamente uniforme los vértices de las triplas, sin importar repeticiones, y el coste $l$ se define con la discretización de una función normal de media $3$ y desviación $1$. En los casos donde se usan las distribuciones normales, se toma el máximo del valor generado y $1$, para aquellos casos donde el valor generado es negativo.
     
-    Una vez generado estos casos se corren par obtener sus valores.
+    Una vez generado estos casos se ejecutan para obtener sus valores.
     
     
 \end{document}

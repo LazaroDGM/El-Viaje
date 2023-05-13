@@ -1,5 +1,4 @@
 from optimo import execute
-from DFSAllPath import UsefullEdgesDFS
 import time
 
 for i in range(600-10):

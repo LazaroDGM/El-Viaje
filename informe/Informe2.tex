@@ -23,7 +23,8 @@
     
     Denotando por comodidad:
     \begin{itemize}
-    	\item $u \rightarrow v$, ó $<u,v>$, como arista que conecta a $u$ y $v$
+    	\item $u \leftrightarrow v$, ó $<u,v>$, como arista que conecta a $u$ y $v$
+    	\item $u \rightarrow v$, como arista dirigida desde $u$ a $v$.
     	\item $u \rightsquigarrow v$ $<<u, v>>$, como camino de $u$ a $v$
     	\item $c(<u,v>)$, como costo de la arista de $<u,v>$
     	\item $c(u \rightsquigarrow v) = \sum_{e\in u \rightsquigarrow v}^{}c(e)$, como el costo del camino $<<u,v>>$, que no es más que la suma de los costos de cada arista en el camino de $u$ a $v$.
@@ -33,7 +34,7 @@
 	Dicho esto, una arista $e$ se dice útil en $G_L$ si para algún $(u,v,l) \in L$, $\exists (u\rightsquigarrow v)^*$ tal que $e \in (u\rightsquigarrow v)^*$ y $c((u\rightsquigarrow v)^*) \le l$.
     
     
-    \section*{Algoritmo eficiente}
+    \section*{Primer algoritmo polinomial}
     
     La propuesta de algoritmo es:
     
@@ -62,7 +63,7 @@ def ElViaje(n, m, edges, graph, roads):
 
     \section*{Correctitud}
     
-    Demostremos que, $e = <x,y>$ es una arista útil en $G_L$ si y solo si, $\exists (u,v,l) \in L$ tal que $d(u,x) + c(<x,y>) + d(y,v) \le l$ o $d(u,y) + c(<y,x>) + d(x,v) \le l$.\\
+    Demostremos que, (\textbf{Teorema 1}) $e = <x,y>$ es una arista útil en $G_L$ si y solo si, $\exists (u,v,l) \in L$ tal que $d(u,x) + c(<x,y>) + d(y,v) \le l$ o $d(u,y) + c(<y,x>) + d(x,v) \le l$.\\
     
     \subsection*{Dem/($\Leftarrow$)}
     
@@ -145,5 +146,121 @@ def ElViaje(n, m, edges, graph, roads):
     
     Una vez generado estos casos se ejecutan para obtener sus valores.
     
+    \section*{Y si te dijera que esto se puede mejorar?}
+    
+    Del \textbf{Teorema 1} se deduce fácilmente que:
+    
+    Una arista $e=<x,y>$ es útil para alguna tripla de la forma $(u,v_i,l_i)$ con $u,v_i \in V(G)$, y $1\le i \le n$, $\Leftrightarrow$ 
+    $ \exists i (1\le i \le n)$ tal que se cumpla una de las siguientes 2 condiciones:
+    \begin{itemize}
+		\item $d(u,x) + c(<x,y>) + d(y,v_i) \le l_i$
+		\item $d(u,y) + c(<y,x>) + d(x,v_i) \le l_i$
+    \end{itemize}
+	$\Leftrightarrow \exists i (1\le i \le n)$ tal que se cumpla una de las siguientes 2 condiciones:
+    \begin{itemize}
+    	\item $-l_i + d(y,v_i) \le d(u,x) + c(<x,y>)$
+    	\item $-l_i + d(x,v_i) \le d(u,y) + c(<y,x>)$
+    \end{itemize}
+	
+	Sin pérdida de generalidad vamos a trabajar con la primera condición. Si $\exists i^*$  tal que $-l_{i^*} + d(y,v_{i^*}) \le d(u,x) + c(<x,y>)$, entonces $$\min_{1\le i \le n}\{-l_{i} + d(y,v_{i})\} \le -l_{i^*} + d(y,v_{i^*}) \le d(u,x) + c(<x,y>) $$
+	y por lo tanto se cumple que:
+	$$\min_{1\le i \le n}\{-l_{i} + d(y,v_{i})\} \le d(u,x) + c(<x,y>) $$
+	
+	Ahora demostremos que en sentido inverso se cumple. Supongamos que 
+	$$\min_{1\le i \le n}\{-l_{i} + d(y,v_{i})\} \le d(u,x) + c(<x,y>) $$
+	Entonces $\exists i_0$	donde ($1 \le i_0 \le n$), tal que:
+	$$ \min_{1\le i \le n}\{-l_{i} + d(y,v_{i})\} = -l_{i_0} + d(y,v_{i_0}) $$
+	y por lo tanto este cumplirá que:
+	$$ -l_{i_0} + d(y,v_{i_0}) \le d(u,x) + c(<x,y>) $$
+	
+	Finalmente hemos obtenido otra equivalencia para la deducción del \textbf{Teorema 1} que hemos ido analizando, concluyendo que (\textbf{Lema 1}):
+	
+	Una arista $e=<x,y>$ es útil para alguna tripla de la forma $(u,v_i,l_i)$ con $u,v_i \in V(G)$, y $1\le i \le n$, $\Leftrightarrow$ se cumple una de las siguientes 2 condiciones:
+	\begin{itemize}
+		\item $\min_{1\le i \le n}\{-l_{i} + d(y,v_{i})\} \le d(u,x) + c(<x,y>)$
+		\item $\min_{1\le i \le n}\{-l_{i} + d(x,v_{i})\} \le d(u,y) + c(<x,y>)$
+	\end{itemize}
+
+	Note que el miembro derecho tiene fijado $u$, por lo tanto podríamos recorrer todos las aristas $<x,y>$ del grafo y calcular dicho miembro. Por otro lado el miembro derecho para el $u$ fijado varían los valores de $v_i$ y $l_i$, y a su vez queremos calcular dicho valor para todo vértice $x$ o $y$.
+	
+	Note que para todo $x$ o $y$ se podría calcular ese valor mínimo. Sin pérdida de generalidad trabajaremos con $y$. Note que el objetivo que nos estamos proponiendo ahora es calcular el valor de:
+	$$\min_{1\le i \le n}\{-l_{i} + d(y,v_{i})\} ~ \forall y \in V(G)$$
+	
+	Para esto construyamos $G^\prime=<V^\prime,E^\prime, c^\prime>$ tal que:
+	\begin{itemize}
+		\item $V^\prime = V(G)\cup\{u_0\}$
+		\item $E^\prime = E(G)\cup \{u_0\rightarrow v_i ~ | ~ \forall (u,v_i,l_i)\in L\}$
+		\item $c^\prime(u_0 \rightarrow v_i) = -l_i \qquad \forall (u,v_i,l_i)\in L$
+		\item $c^\prime(e) = c(e) \qquad \forall e\in E(G)$
+	\end{itemize}
+	Es decir, nos construimos ahora un nuevo grafo basado en el grafo $G$ pero que esta vez tiene un nuevo nodo $u_0$ conectado de forma dirigida (unidireccional) a los $v_i$, con peso $-l_i$ de las triplas $(u, v_i,l_i)$.
+	
+	Ahora demostraremos que un camino de costo mínimo de $u_0$ a $y$ en $G^\prime$ tiene costo igual a $\min_{1\le i \le n}\{-l_{i} + d(y,v_{i})\} = M$. Todo camino de $u_0$ a $y$ pasa necesariamente por una arista $u_0 \rightarrow u_i$ por construcción de $G^\prime$, y el menor costo de $u_i$ a $y$ está dado por $d(u_i,y)$. Por lo tanto reducimos la cantidad de posibles costos de caminos de costos mínimos en $G^\prime$, teniendo solamente en cuenta todos los posibles $c^\prime(u_0,u_i) + d(u_i,y) = -l_i + d(u_i,y)$. Y evidentemente, tomamos el menor de estos, quedando que:
+	$$c^\prime(u_0\rightsquigarrow y) = \min\{-l_i + d(u_i,y)\}$$
+	
+	Luego traducimos esto a realizar el algoritmo Dijkstra en el nuevo grafo. Sin embargo, realizar este algoritmo en su versión con array tendría coste $O((n+1)^2)$. Pero recordando EDA II, al Algoritmo de Dijkstra se le puede hacer una modificación para que alguno nodos ya empiecen con cierto coste. Note que la estructura de $G^\prime$ obliga a que al aplicar este algoritmo las primeras aristas que se van a relajar serían siempre las que parten de $u_0$, y casi al comienzo, todos los nodos $u_i$ tendrían coste mínimo $-l_i$. Debido a esto la modificación que se puede hacer en el algoritmo es asignarles desde un inicio estos valores a los nodos en cuestión. Note que hacer esto nos libra de tener qu agregar un nodo y aristas ficticias, además de que no modificamos los costes de las aristas del grafo $G$, los cuales se mantendrían no negativos.
+	
+	\section*{Algoritmo más eficiente}
+	
+	Ahora bien, sentadas estas bases, el nuevo algoritmo propuesto es el siguiente:
+	
+	\begin{lstlisting}[language=Python]
+def ElViaje_n2(n, m, edges, graph, roads):
+
+    if edges == None or edges == [] or roads == None or roads == []:
+        return 0
+    
+    # Primera Parte (calculando los costos minimos de nodo a nodo)
+    d = FloydWarshall(n, edges)
+    
+    # Segunda Parte (comprobando aristas utiles)
+    usefull_edge_count = 0
+    usefull_edges_mark = [[False] * n for _ in range(n)]
+    
+    mark = [False] * n
+    
+    for _ in range(n):
+        v = None
+        dist = [inf] * n
+        
+        for vi, ui, li in roads:
+            if v == None:
+                if not mark[vi]:
+                    v = vi
+                    mark[v] = True
+            if v == vi:
+            dist[ui] = - li
+        
+        if v == None: break
+        
+        dist = multi_dijkstra_array(graph, dist, n)
+        
+        for x,y,w in edges:
+            if not usefull_edges_mark[x][y]:
+                if dist[x] <= -w - d[v][y] or dist[y] <= -w - d[v][x]:
+                    usefull_edge_count +=1
+                    usefull_edges_mark[x][y] = True
+                    usefull_edges_mark[y][x] = True
+    
+    return usefull_edge_count
+	\end{lstlisting}
+
+	En un inicio se aplica el algoritmo de Floyd Warshall para obtener el costo del camino de costo mínimo entre cualesquiera dos vértices. Y luego se va a comenzar el proceso de fijar el primer vértice de las triplas, para iterar por ellos. En esta gran iteración al tener fijado $u$, se calcula con el algoritmo de Dijkstra modificado el $\min\{-l_i + d(u_i,x)$ para todo vértice $x$. Y una vez calculados estos valores se itera por las aristas para comprobar la condición de arista útil. Note que una vez finalizado esta iteración se pasa hacer el mismo análisis con el siguiente nodo no fijado. Es importante destacar que lo que justifica la búsqueda de esta manera es al variar $u$ en el \textbf{Teorema 1}.
+	
+	\section*{Complejidad Temporal}
+	
+	Al inicio se aplica Floy Warshall lo cuál es $O(|V|^3)$. Luego dentro de la iteración por los vértices se hacen 3 cosas:
+	\begin{itemize}
+		\item Buscar todos las triplas de la forma $(u, v_i, l_i)$ con el $v$ fijado de la iteración. Lo cual es $O(|E|)$
+		\item Aplicar Dijkstra con array (con la modificación explicada). Esto es $O(|V|^2)$
+		\item Comprobar para cada arista aún no marcada de útil, si lo es. Como se recorren las aristas, es $O(|E|)$
+	\end{itemize}
+	
+	Por lo tanto esta segunda parte sería $O(|V|(|E| + |V|^2 + |E|)) = O(2|V||E| + |V|^3) = O(|V||E| + |V|^3)$
+	
+	Luego $$T(n,m,q) = O(|V|^3 + |V||E| + |V|^3) = O(2|V|^3 + |V||E|) = O(|V|^3 + |V||E|)$$
+	
+	En el peor caso $|E| = |V|^2$, y la complejidad quedaría en
+	$$T(n,m,q) = O(|V|^3) = O(n^3)$$
     
 \end{document}

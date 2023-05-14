@@ -70,27 +70,9 @@ def ElViaje(n, m, edges, graph, roads):
                 break
     return usefull_edge_count
 
-def execute():
-    n,m = map(int, input().split())
-
-    graph = [[] for _ in range(n)]
-    edges = []
-    for _ in range(m):
-        u,v,w = map(int, input().split())
-        edges.append((u-1,v-1,w))
-        graph[u-1].append((v-1,w))
-        graph[v-1].append((u-1,w))
-
-    roads=[]
-    q = int(input())
-    for _ in range(q):
-        u,v,l = map(int, input().split())
-        roads.append((u-1,v-1,l))
-
-    print(ElViaje(n,m,edges,graph,roads))
-
-
 #==============================N2===============================================
+from math import inf, log
+import heapq
 def multi_dijkstra_array(graph, dist, n):    
     visited = [False] * n
 
@@ -113,18 +95,30 @@ def multi_dijkstra_array(graph, dist, n):
                     dist[neighbor] = distance    
     return dist
 
+def FloydWarshall(n,edges):
+    # Inicializar matriz de distancias
+    dist = [[inf] * n for _ in range(n)]
+    for i in range(n):
+        dist[i][i] = 0
+
+    for (u,v,w) in edges:
+        dist[u][v] = dist[v][u] = w
+
+    # Computar camino de costo minimo para todo par de vertices
+    for k in range(n):
+        for i in range(n):
+            for j in range(n):
+                dist[i][j] = dist[j][i] = min(dist[i][j], dist[i][k] + dist[k][j])                
+
+    return dist
+
 def ElViaje_n2(n, m, edges, graph, roads):
     
     if edges == None or edges == [] or roads == None or roads == []:
         return 0
 
-    # Primera Parte (calculando a lo sumo n Dijkstras)
-    d = [None] * n
-    for u,v,l in roads:
-        if d[u] is None:
-            d[u] = dijkstra(graph, u, n, m)
-        if d[v] is None:
-            d[v] = dijkstra(graph, v, n, m)
+    # Primera Parte (calculando los costos mínimos de nodo a nodo)
+    d = FloydWarshall(n, edges)
 
     # Segunda Parte (comprobando aristas útiles)
     usefull_edge_count = 0
@@ -135,7 +129,7 @@ def ElViaje_n2(n, m, edges, graph, roads):
     for _ in range(n):
         v = None
         dist = [inf] * n
-
+        # Fijando el primer nodo de las triplas
         for vi, ui, li in roads:
             if v == None:
                 if not mark[vi]:
@@ -156,3 +150,24 @@ def ElViaje_n2(n, m, edges, graph, roads):
                     usefull_edges_mark[y][x] = True
 
     return usefull_edge_count
+
+def execute():
+    n,m = map(int, input().split())
+
+    graph = [[] for _ in range(n)]
+    edges = []
+    for _ in range(m):
+        u,v,w = map(int, input().split())
+        edges.append((u-1,v-1,w))
+        graph[u-1].append((v-1,w))
+        graph[v-1].append((u-1,w))
+
+    roads=[]
+    q = int(input())
+    for _ in range(q):
+        u,v,l = map(int, input().split())
+        roads.append((u-1,v-1,l))
+
+    print(ElViaje_n2(n,m,edges,graph,roads))
+
+execute()
